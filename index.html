@@ -57,8 +57,14 @@
               behavior: "smooth"
             });
             window.onscroll = () => {
+              if (document.body.offsetHeight <= (window.innerHeight + window.pageYOffset)) {
+                // bottom of the page
+                isSnapScrolling = false; // snap scroll end
+                return;
+              }
               if (targetOffset === window.pageYOffset) {
                 isSnapScrolling = false; // snap scroll end
+                return;
               }
             };
           };
