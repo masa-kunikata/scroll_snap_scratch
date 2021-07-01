@@ -22,62 +22,53 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/lodash.throttle@4.1.1/index.js"></script> -->
 
     <script>
-    "use strict";
+      const agent = window.navigator.userAgent.toLowerCase();
+      const isFirefox = (-1 < agent.indexOf('firefox'));
 
-    (function () {
-      var agent = window.navigator.userAgent.toLowerCase();
-      var isFirefox = (-1 < agent.indexOf('firefox'));
+      const areas = document.querySelectorAll('.area');
+      let isSnapScrolling = false;
+      let prevPos = window.pageYOffset;
 
-      var areas = document.querySelectorAll('.area');
-      var areasCount = areas.length;
-      for (var n = 0; n < areasCount; ++n) {
-        areas[n].classList.add(`area${n + 1}`);
-      }
+      const handleScroll = () => {
+        const currentPos = window.pageYOffset;
 
-      /** false: scroll done, true: scrolling */
-      var isScrolling = false;
-      var prevPos = window.pageYOffset;
+        if(!isSnapScrolling){
+          const triggerSnapScroll = (prevArea, nextArea) => {
+            const prevOffset = prevArea.offsetTop;
+            const nextOffset = nextArea.offsetTop;
 
-      var handleScroll = function() {
-        var currentPos = window.pageYOffset;
+            const isInside = (prevOffset < currentPos && currentPos < nextOffset);
+            if (!isInside) return; // no trigger
 
-        var triggerScroll = function(prevSelector, nextSelector) {
-          if(isScrolling) return; // no trigger
-
-          var prevOffset = document.querySelector(prevSelector).offsetTop;
-          var nextOffset = document.querySelector(nextSelector).offsetTop;
-
-          var isInside = (prevOffset < currentPos && currentPos < nextOffset);
-          if (!isInside) return; // no trigger
-
-          var targetOffset = undefined;
-          if (prevPos < currentPos) {
-            targetOffset = nextOffset; // scroll down
-          } else if (currentPos < prevPos) {
-            targetOffset = prevOffset; // scroll up
-          } else {
-            return;
-          }
-
-          if (!isFirefox) {
-            isScrolling = true; // scroll start
-          }
-          window.scrollTo({
-            top: targetOffset,
-            behavior: "smooth"
-          });
-          window.onscroll = function () {
-            if (targetOffset === window.pageYOffset) {
-              isScrolling = false; // scroll end
+            let targetOffset = undefined;
+            if (prevPos < currentPos) {
+              targetOffset = nextOffset; // scroll down
+            } else if (currentPos < prevPos) {
+              targetOffset = prevOffset; // scroll up
+            } else {
+              return;
             }
+
+            if (!isFirefox) {
+              isSnapScrolling = true; // snap scroll start
+            }
+            window.scrollTo({
+              top: targetOffset,
+              behavior: "smooth"
+            });
+            window.onscroll = () => {
+              if (targetOffset === window.pageYOffset) {
+                isSnapScrolling = false; // snap scroll end
+              }
+            };
           };
-        };
 
-        for (var n = 0; n < areasCount - 1; ++n) {
-          var prevSelector = `.area${n + 1}`
-          var nextSelector = `.area${n + 2}`
-
-          triggerScroll(prevSelector, nextSelector);
+          const areasCount = areas.length;
+          for (let n = 0; n < areasCount - 1; ++n) {
+            const prevArea = areas[n]
+            const nextArea = areas[n + 1]
+            triggerSnapScroll(prevArea, nextArea);
+          }
         }
 
         prevPos = currentPos;
@@ -85,8 +76,6 @@
 
       // window.addEventListener('scroll', _.throttle(handleScroll, 1000 / 100), false);
       window.addEventListener('scroll', handleScroll, false);
-    })();
-
     </script>
   </div>
   <style>
