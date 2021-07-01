@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>snap scroll js scratch</title>
+</head>
+
+<body>
+  <div class="wrapper">
+
+    <div class="area">1</div>
+    <div class="area">2</div>
+    <div class="area">3</div>
+    <div class="area">4</div>
+    <div class="area">5</div>
+    <div class="area">6</div>
+    <div class="area">7</div>
+    <div class="area">8</div>
+    <div class="area">9</div>
+    <div class="area">10</div>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/lodash.throttle@4.1.1/index.js"></script> -->
+
+    <script>
+    "use strict";
+
+    (function () {
+      var agent = window.navigator.userAgent.toLowerCase();
+      var isFirefox = (-1 < agent.indexOf('firefox'));
+
+      var areas = document.querySelectorAll('.area');
+      var areasCount = areas.length;
+      for (var n = 0; n < areasCount; ++n) {
+        areas[n].classList.add(`area${n + 1}`);
+      }
+
+      /** false: scroll done, true: scrolling */
+      var isScrolling = false;
+      var prevPos = window.pageYOffset;
+
+      var handleScroll = function() {
+        var currentPos = window.pageYOffset;
+
+        var triggerScroll = function(prevSelector, nextSelector) {
+          if(isScrolling) return; // no trigger
+
+          var prevOffset = document.querySelector(prevSelector).offsetTop;
+          var nextOffset = document.querySelector(nextSelector).offsetTop;
+
+          var isInside = (prevOffset < currentPos && currentPos < nextOffset);
+          if (!isInside) return; // no trigger
+
+          var targetOffset = undefined;
+          if (prevPos < currentPos) {
+            targetOffset = nextOffset; // scroll down
+          } else if (currentPos < prevPos) {
+            targetOffset = prevOffset; // scroll up
+          } else {
+            return;
+          }
+
+          if (!isFirefox) {
+            isScrolling = true; // scroll start
+          }
+          window.scrollTo({
+            top: targetOffset,
+            behavior: "smooth"
+          });
+          window.onscroll = function () {
+            if (targetOffset === window.pageYOffset) {
+              isScrolling = false; // scroll end
+            }
+          };
+        };
+
+        for (var n = 0; n < areasCount - 1; ++n) {
+          var prevSelector = `.area${n + 1}`
+          var nextSelector = `.area${n + 2}`
+
+          triggerScroll(prevSelector, nextSelector);
+        }
+
+        prevPos = currentPos;
+      };
+
+      // window.addEventListener('scroll', _.throttle(handleScroll, 1000 / 100), false);
+      window.addEventListener('scroll', handleScroll, false);
+    })();
+
+    </script>
+  </div>
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+    }
+    .area {
+      width: 100%;
+      height: 100vh;
+    }
+    .area {
+      font-size: 80px;
+      text-align: center;
+      line-height: 100vh;
+      color: #fff;
+    }
+    .area:nth-child(2n+1){
+      background: lightgray;
+    }
+    .area:nth-child(2n){
+      background: gray;
+    }
+  </style>
+</body>
+
+</html>
